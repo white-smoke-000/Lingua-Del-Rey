@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Колесо удачи</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid; place-items: center;
+      font-family: Arial, sans-serif; color: #fff;
+      background: linear-gradient(135deg, #35206a, #0e7490);
+    }
+    main { width: min(92vw, 620px); text-align: center; }
+    h1 { margin-bottom: 10px; }
+    .wheel-box { position: relative; margin: 22px auto; width: min(92vw, 520px); }
+    canvas {
+      display: block; width: 100%; height: auto; border-radius: 50%;
+      background: white; box-shadow: 0 12px 40px #0008;
+    }
+    .pointer {
+      position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
+      width: 0; height: 0;
+      border-left: 22px solid transparent; border-right: 22px solid transparent;
+      border-top: 48px solid #facc15; filter: drop-shadow(0 3px 2px #0008);
+      z-index: 2;
+    }
+    button {
+      border: 0; border-radius: 999px; padding: 15px 30px;
+      background: #facc15; color: #1f2937; font-size: 18px; font-weight: 700;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    #result { min-height: 28px; margin: 18px 0; font-size: 22px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>Колесо удачи</h1>
+
+    <div class="wheel-box">
+      <div class="pointer"></div>
+      <canvas id="wheel" width="600" height="600"></canvas>
+    </div>
+
+    <button id="spin">Крутить</button>
+    <p id="result" aria-live="polite">Нажмите «Крутить»</p>
+  </main>
+
+  <script>
+    // Измените этот список на свои варианты
+    const items = ["Подарок", "Скидка 10%", "Ещё попытка", "Бонус", "Скидка 20%", "Приз"];
+
+    const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#8b5cf6"];
+    const canvas = document.getElementById("wheel");
+    const ctx = canvas.getContext("2d");
+    const button = document.getElementById("spin");
+    const result = document.getElementById("result");
+
+    let rotation = 0;
+    let spinning = false;
+
+    function drawWheel() {
+      const size = canvas.width;
+      const center = size / 2;
+      const radius = center - 8;
+      const arc = (Math.PI * 2) / items.length;
+
+      ctx.clearRect(0, 0, size, size);
+
+      items.forEach((item, i) => {
+        const start = -Math.PI / 2 + i * arc + rotation;
+        const end = start + arc;
+
+        ctx.beginPath();
+        ctx.moveTo(center, center);
+        ctx.arc(center, center, radius, start, end);
+        ctx.closePath();
+        ctx.fillStyle = colors[i % colors.length];
+        ctx.fill();
+        ctx.strokeStyle = "#fff";
+        ctx.lineWidth = 3;
+        ctx.stroke();
+
+        ctx.save();
+        ctx.translate(center, center);
+        ctx.rotate(start + arc / 2);
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 20px Arial";
+        ctx.textAlign = "right";
+        ctx.fillText(item, radius - 28, 7);
+        ctx.restore();
+      });
+
+      ctx.beginPath();
+      ctx.arc(center, center, 45, 0, Math.PI * 2);
+      ctx.fillStyle = "#fff";
+      ctx.fill();
+      ctx.fillStyle = "#1f2937";
+      ctx.font = "bold 16px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("КРУТИ", center, center + 6);
+    }
+
+    function spin() {
+      if (spinning) return;
+
+      spinning = true;
+      button.disabled = true;
+      result.textContent = "Колесо крутится…";
+
+      const startRotation = rotation;
+      const extraTurns = 5 + Math.random() * 3;
+      const finalRotation = rotation + extraTurns * Math.PI * 2;
+      const duration = 4000;
+      const startTime = performance.now();
+
+      function animate(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 4);
+        rotation = startRotation + (finalRotation - startRotation) * eased;
+        drawWheel();
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+          return;
+        }
+
+        const arc = (Math.PI * 2) / items.length;
+        const normalized = ((-rotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const winner = items[Math.floor(normalized / arc)];
+
+        result.textContent = `Выпало: ${winner}`;
+        spinning = false;
+        button.disabled = false;
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    button.addEventListener("click", spin);
+    drawWheel();
+  </script>
+</body>
+</html>
