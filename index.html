@@ -3,55 +3,155 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Колесо удачи</title>
+  <title>Lucky English</title>
   <style>
     * { box-sizing: border-box; }
+
     body {
-      margin: 0; min-height: 100vh; display: grid; place-items: center;
-      font-family: Arial, sans-serif; color: #fff;
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      font-family: Arial, sans-serif;
+      color: #fff;
       background: linear-gradient(135deg, #35206a, #0e7490);
     }
-    main { width: min(92vw, 620px); text-align: center; }
-    h1 { margin-bottom: 10px; }
-    .wheel-box { position: relative; margin: 22px auto; width: min(92vw, 520px); }
+
+    main {
+      width: min(94vw, 1100px);
+      padding: 38px 0;
+    }
+
+    h1 {
+      margin: 0 0 28px;
+      text-align: center;
+      font-size: clamp(36px, 6vw, 58px);
+    }
+
+    .content {
+      display: grid;
+      grid-template-columns: minmax(280px, 520px) minmax(280px, 1fr);
+      align-items: center;
+      gap: 52px;
+    }
+
+    .wheel-box {
+      position: relative;
+      width: 100%;
+      margin: 0 auto;
+    }
+
     canvas {
-      display: block; width: 100%; height: auto; border-radius: 50%;
-      background: white; box-shadow: 0 12px 40px #0008;
+      display: block;
+      width: 100%;
+      height: auto;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 12px 40px #0008;
     }
+
     .pointer {
-      position: absolute; top: -2px; left: 50%; transform: translateX(-50%);
-      width: 0; height: 0;
-      border-left: 22px solid transparent; border-right: 22px solid transparent;
-      border-top: 48px solid #facc15; filter: drop-shadow(0 3px 2px #0008);
+      position: absolute;
+      top: -2px;
+      left: 50%;
       z-index: 2;
+      width: 0;
+      height: 0;
+      transform: translateX(-50%);
+      border-right: 22px solid transparent;
+      border-left: 22px solid transparent;
+      border-top: 48px solid #facc15;
+      filter: drop-shadow(0 3px 2px #0008);
     }
+
+    .controls { text-align: center; }
+
     button {
-      border: 0; border-radius: 999px; padding: 15px 30px;
-      background: #facc15; color: #1f2937; font-size: 18px; font-weight: 700;
+      border: 0;
+      border-radius: 999px;
+      padding: 15px 30px;
+      background: #facc15;
+      color: #1f2937;
+      font-size: 18px;
+      font-weight: 700;
       cursor: pointer;
     }
-    button:disabled { opacity: .6; cursor: wait; }
-    #result { min-height: 28px; margin: 18px 0; font-size: 22px; font-weight: bold; }
+
+    button:disabled {
+      opacity: .6;
+      cursor: not-allowed;
+    }
+
+    #result {
+      min-height: 28px;
+      margin: 18px 0 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .instruction {
+      padding: 30px;
+      border: 1px solid #ffffff55;
+      border-radius: 20px;
+      background: #ffffff16;
+      box-shadow: 0 12px 40px #0004;
+      font-size: 20px;
+      line-height: 1.55;
+    }
+
+    .instruction a {
+      color: #facc15;
+      font-weight: bold;
+    }
+
+    @media (max-width: 760px) {
+      .content {
+        grid-template-columns: 1fr;
+        gap: 28px;
+      }
+
+      .instruction { font-size: 18px; }
+    }
   </style>
 </head>
 <body>
   <main>
-    <h1>Колесо удачи</h1>
+    <h1>Lucky English</h1>
 
-    <div class="wheel-box">
-      <div class="pointer"></div>
-      <canvas id="wheel" width="600" height="600"></canvas>
+    <div class="content">
+      <section class="controls">
+        <div class="wheel-box">
+          <div class="pointer"></div>
+          <canvas id="wheel" width="600" height="600"></canvas>
+        </div>
+
+        <button id="spin">Крутить!</button>
+        <p id="result" aria-live="polite">У вас одна попытка. Удачи!</p>
+      </section>
+
+      <aside class="instruction">
+        Hello! Это Колесо Фортуны от Lingua Del Rey, где ты можешь выиграть
+        классные скидки на занятия. Жми «Крутить!» Если удача на твоей стороне,
+        скорее делай скрин и присылай в личные сообщения Телеграмм
+        <a href="https://t.me/sshnepss" target="_blank" rel="noopener">
+          @sshnepss
+        </a>.
+      </aside>
     </div>
-
-    <button id="spin">Крутить</button>
-    <p id="result" aria-live="polite">Нажмите «Крутить»</p>
   </main>
 
   <script>
-    // Измените этот список на свои варианты
-    const items = ["Подарок", "Скидка 10%", "Ещё попытка", "Бонус", "Скидка 20%", "Приз"];
+    const items = [
+      { label: "Ещё попытка", extraSpin: true },
+      { label: "Скидка 15% на первый месяц" },
+      { label: "1 бесплатное занятие" },
+      { label: "Скидка 5% на первый месяц" },
+      { label: "2 бесплатных занятия" },
+      { label: "Better luck next time :(" }
+    ];
 
     const colors = ["#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4", "#8b5cf6"];
+
     const canvas = document.getElementById("wheel");
     const ctx = canvas.getContext("2d");
     const button = document.getElementById("spin");
@@ -59,6 +159,27 @@
 
     let rotation = 0;
     let spinning = false;
+    let spinsRemaining = 1;
+
+    function wrapText(text, maxWidth) {
+      const words = text.split(" ");
+      const lines = [];
+      let line = "";
+
+      words.forEach(word => {
+        const next = line ? `${line} ${word}` : word;
+
+        if (ctx.measureText(next).width > maxWidth && line) {
+          lines.push(line);
+          line = word;
+        } else {
+          line = next;
+        }
+      });
+
+      if (line) lines.push(line);
+      return lines;
+    }
 
     function drawWheel() {
       const size = canvas.width;
@@ -86,9 +207,17 @@
         ctx.translate(center, center);
         ctx.rotate(start + arc / 2);
         ctx.fillStyle = "#fff";
-        ctx.font = "bold 20px Arial";
+        ctx.font = "bold 18px Arial";
         ctx.textAlign = "right";
-        ctx.fillText(item, radius - 28, 7);
+
+        const lines = wrapText(item.label, 180);
+        const lineHeight = 20;
+        const startY = -((lines.length - 1) * lineHeight) / 2;
+
+        lines.forEach((line, index) => {
+          ctx.fillText(line, radius - 28, startY + index * lineHeight + 6);
+        });
+
         ctx.restore();
       });
 
@@ -96,16 +225,28 @@
       ctx.arc(center, center, 45, 0, Math.PI * 2);
       ctx.fillStyle = "#fff";
       ctx.fill();
+
       ctx.fillStyle = "#1f2937";
       ctx.font = "bold 16px Arial";
       ctx.textAlign = "center";
       ctx.fillText("КРУТИ", center, center + 6);
     }
 
+    function updateButton() {
+      if (spinsRemaining > 0) {
+        button.disabled = false;
+        button.textContent = spinsRemaining === 1 ? "Крутить!" : "Крутить ещё раз!";
+      } else {
+        button.disabled = true;
+        button.textContent = "Попытки закончились";
+      }
+    }
+
     function spin() {
-      if (spinning) return;
+      if (spinning || spinsRemaining < 1) return;
 
       spinning = true;
+      spinsRemaining--;
       button.disabled = true;
       result.textContent = "Колесо крутится…";
 
@@ -118,6 +259,7 @@
       function animate(now) {
         const progress = Math.min((now - startTime) / duration, 1);
         const eased = 1 - Math.pow(1 - progress, 4);
+
         rotation = startRotation + (finalRotation - startRotation) * eased;
         drawWheel();
 
@@ -127,12 +269,19 @@
         }
 
         const arc = (Math.PI * 2) / items.length;
-        const normalized = ((-rotation % (Math.PI * 2)) + Math.PI * 2) % (Math.PI * 2);
+        const fullCircle = Math.PI * 2;
+        const normalized = ((-rotation % fullCircle) + fullCircle) % fullCircle;
         const winner = items[Math.floor(normalized / arc)];
 
-        result.textContent = `Выпало: ${winner}`;
+        if (winner.extraSpin) {
+          spinsRemaining++;
+          result.textContent = "Выпало: Ещё попытка! Крутите колесо ещё раз.";
+        } else {
+          result.textContent = `Выпало: ${winner.label}`;
+        }
+
         spinning = false;
-        button.disabled = false;
+        updateButton();
       }
 
       requestAnimationFrame(animate);
@@ -140,6 +289,7 @@
 
     button.addEventListener("click", spin);
     drawWheel();
+    updateButton();
   </script>
 </body>
 </html>
